@@ -8,6 +8,7 @@ export type V2SessionReduction = {
   sessionID: string
   messages: SessionMessageInfo[]
   touched: string[]
+  removed?: string[]
   missing?: string
 }
 
@@ -84,6 +85,23 @@ export function createV2SessionReducer() {
             )?.model,
           time: { created: event.created },
         })
+      case "session.instructions.updated": {
+        const instructions = event.metadata?.instructions
+        if (
+          typeof instructions === "object" &&
+          instructions !== null &&
+          "initial" in instructions &&
+          instructions.initial === true
+        )
+          return
+        return append({
+          id: messageID(event.id),
+          type: "system",
+          text: `Instructions updated: ${Object.keys(event.data.delta).join(", ")}`,
+          metadata: event.metadata,
+          time: { created: event.created },
+        })
+      }
       case "session.synthetic":
         return append({
           id: messageID(event.id),
