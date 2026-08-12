@@ -76,7 +76,6 @@ const DirectoryDraftRedirect = () => {
 }
 
 // Wraps the non-draft routes. They are gated on (and keyed to) the globally selected
-// Wraps the non-draft routes. They are gated on (and keyed to) the globally selected
 // server via ServerKey, then provide the server-scoped shell for that server.
 function SelectedServerProviders(props: ParentProps) {
   return (
@@ -107,16 +106,14 @@ function DraftRoute() {
 function ResolvedDraftRoute(props: { draft: DraftTab }) {
   const global = useGlobal()
   const conn = createMemo(() => global.servers.list().find((item) => ServerConnection.key(item) === props.draft.server))
-  const directory = () => props.draft.directory
-  const serverKey = () => props.draft.server
 
   return (
     <Show when={`${props.draft.server}\0${props.draft.directory}`} keyed>
-      <ServerSDKProvider server={conn}>
-        <ServerSyncProvider server={conn}>
-          <ModelsProvider directory={directory}>
-            <SDKProvider directory={directory}>
-              <DirectoryDataProvider directory={directory} server={serverKey}>
+      <ServerSDKProvider server={conn()}>
+        <ServerSyncProvider server={conn()}>
+          <ModelsProvider directory={props.draft.directory}>
+            <SDKProvider directory={props.draft.directory}>
+              <DirectoryDataProvider directory={props.draft.directory} server={props.draft.server}>
                 <DraftProviders>
                   <NewSession />
                 </DraftProviders>
@@ -220,7 +217,7 @@ function DesktopCommands() {
 }
 
 type ServerScopedShellProps = ParentProps<{
-  directory?: () => string | undefined
+  directory?: string
   serverScoped?: JSX.Element
 }>
 

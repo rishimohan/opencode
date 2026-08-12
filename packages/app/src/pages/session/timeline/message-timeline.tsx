@@ -396,11 +396,11 @@ type MessageTimelineProps = {
   onScheduleScrollState: (el: HTMLDivElement) => void
   onAutoScrollHandleScroll: () => void
   onMarkScrollGesture: (target?: EventTarget | null) => void
-  hasScrollGesture: () => boolean
+  hasScrollGesture: boolean
   onUserScroll: () => void
   onHistoryScroll: () => void
   onAutoScrollInteraction: (event: MouseEvent) => void
-  shouldAnchorBottom: () => boolean
+  shouldAnchorBottom: boolean
   centered: boolean
   setContentRef: (el: HTMLDivElement) => void
   userMessages: UserMessage[]
@@ -437,7 +437,7 @@ function MessageTimelineView(
   const ownerSessionKey = props.data.sessionKey()
   const cached = timelineCache.get(ownerSessionKey)
   const initialMeasurements = cached?.measurements
-  const coldBottomMount = !initialMeasurements?.length && props.shouldAnchorBottom()
+  const coldBottomMount = !initialMeasurements?.length && props.shouldAnchorBottom
 
   const [listRoot, setListRoot] = createSignal<HTMLDivElement>()
   const sessionID = props.data.sessionID
@@ -601,7 +601,7 @@ function MessageTimelineView(
     },
     getScrollElement: () => listRoot() ?? null,
     observeElementOffset: observeElementOffsetReconnectAware,
-    initialOffset: () => (props.shouldAnchorBottom() ? Number.MAX_SAFE_INTEGER : 0),
+    initialOffset: () => (props.shouldAnchorBottom ? Number.MAX_SAFE_INTEGER : 0),
     initialMeasurementsCache: initialMeasurements,
     estimateSize: () => timelineFallbackItemSize,
     scrollToFn: (offset, options, instance) => {
@@ -639,11 +639,11 @@ function MessageTimelineView(
   const resizeItem = virtualizer.resizeItem
   let resizeAnchorScheduled = false
   const anchorResizedBottom = () => {
-    if (resizeAnchorScheduled || props.hasScrollGesture()) return
+    if (resizeAnchorScheduled || props.hasScrollGesture) return
     resizeAnchorScheduled = true
     queueMicrotask(() => {
       resizeAnchorScheduled = false
-      if (!props.shouldAnchorBottom() || props.hasScrollGesture()) return
+      if (!props.shouldAnchorBottom || props.hasScrollGesture) return
       virtualizer.scrollToEnd()
     })
   }
@@ -668,10 +668,10 @@ function MessageTimelineView(
       })
     }
     resizeItem(index, size)
-    if (root && props.shouldAnchorBottom()) anchorResizedBottom()
+    if (root && props.shouldAnchorBottom) anchorResizedBottom()
   }
   virtualizer.shouldAdjustScrollPositionOnItemSizeChange = (item) => {
-    if (props.shouldAnchorBottom()) return false
+    if (props.shouldAnchorBottom) return false
     const first = virtualizer.range?.startIndex
     return first !== undefined && item.index < first
   }
@@ -692,18 +692,18 @@ function MessageTimelineView(
   let overscanFrame: number | undefined
   onMount(() => {
     overscanFrame = requestAnimationFrame(() => {
-      if (props.shouldAnchorBottom()) virtualizer.scrollToEnd()
+      if (props.shouldAnchorBottom) virtualizer.scrollToEnd()
       overscanFrame = requestAnimationFrame(() => {
         overscanFrame = undefined
         if (renderOverscan() < 20) setRenderOverscan(20)
-        if (props.shouldAnchorBottom()) virtualizer.scrollToEnd()
+        if (props.shouldAnchorBottom) virtualizer.scrollToEnd()
       })
     })
   })
 
   const maybeAnchorBottom = () => {
     if (timelineRows().length === 0) return
-    if (!props.shouldAnchorBottom() || props.hasScrollGesture()) return
+    if (!props.shouldAnchorBottom || props.hasScrollGesture) return
     if (resizePinFrame !== undefined) cancelAnimationFrame(resizePinFrame)
     clearPrependAnchor()
     if (prependAnchorFrame !== undefined) cancelAnimationFrame(prependAnchorFrame)
@@ -815,7 +815,7 @@ function MessageTimelineView(
     if (prependLoading) updatePrependAnchor()
     props.onScheduleScrollState(event.currentTarget)
     props.onHistoryScroll()
-    if (!props.hasScrollGesture()) return
+    if (!props.hasScrollGesture) return
     props.onUserScroll()
     props.onAutoScrollHandleScroll()
     props.onMarkScrollGesture(event.currentTarget)
@@ -972,21 +972,21 @@ function MessageTimelineView(
     )
   }
 
-  function TimelineRowFrame(input: { row: Accessor<FramedTimelineRow>; children: JSX.Element }) {
+  function TimelineRowFrame(input: { row: FramedTimelineRow; children: JSX.Element }) {
     const anchor = () => {
-      const row = input.row()
+      const row = input.row
       return row._tag === "CommentStrip" || (row._tag === "UserMessage" && row.anchor)
     }
     const previousAssistantPart = () => {
-      const row = input.row()
+      const row = input.row
       return row._tag === "AssistantPart" && row.previousAssistantPart
     }
 
     return (
       <div
-        id={anchor() ? props.anchor(input.row().userMessageID) : undefined}
-        data-message-id={input.row().userMessageID}
-        data-timeline-row={input.row()._tag}
+        id={anchor() ? props.anchor(input.row.userMessageID) : undefined}
+        data-message-id={input.row.userMessageID}
+        data-timeline-row={input.row._tag}
         classList={{
           "min-w-0 w-full max-w-full": true,
           "md:max-w-200 2xl:max-w-[1000px]": props.centered,
@@ -1011,8 +1011,8 @@ function MessageTimelineView(
           getMsgParts(commentStripRow().userMessageID).flatMap((part) => MessageComment.fromPart(part) ?? []),
         )
         return (
-          <TimelineRowFrame row={commentStripRow}>
-            <div class={`w-full pb-2 ${turnPadding()}`}>
+          <TimelineRowFrame row={commentStripRow()}>
+            <div class="w-full px-4 md:px-5 pb-2">
               <div class="ms-auto max-w-[82%] overflow-x-auto no-scrollbar">
                 <div class="flex w-max min-w-full justify-end gap-2">
                   <Index each={comments()}>
@@ -1060,7 +1060,7 @@ function MessageTimelineView(
           return getMsgParts(userMessageRow().userMessageID).flatMap((part) => MessageComment.fromPart(part) ?? [])
         })
         return (
-          <TimelineRowFrame row={userMessageRow}>
+          <TimelineRowFrame row={userMessageRow()}>
             <Show when={message()}>
               {(message) => (
                 <div data-slot="session-turn-message-container" class={`w-full ${turnPadding()}`}>
@@ -1091,7 +1091,7 @@ function MessageTimelineView(
         }
         const directory = () => getFilename(operation().directory)
         return (
-          <TimelineRowFrame row={workspaceRow}>
+          <TimelineRowFrame row={workspaceRow()}>
             <div class={`w-full ${turnPadding()}`} aria-live="polite">
               <div class="flex h-7 items-center py-1 text-[13px] font-[440] leading-none tracking-[-0.04px]">
                 <Show
@@ -1126,8 +1126,8 @@ function MessageTimelineView(
       case "TurnDivider": {
         const turnDividerRow = row as Accessor<TimelineRowByTag<"TurnDivider">>
         return (
-          <TimelineRowFrame row={turnDividerRow}>
-            <div data-slot="session-turn-message-container" class={`w-full ${turnPadding()}`}>
+          <TimelineRowFrame row={turnDividerRow()}>
+            <div data-slot="session-turn-message-container" class="w-full px-4 md:px-5">
               <div data-slot="session-turn-compaction">
                 <MessageDivider
                   label={language.t(
@@ -1142,8 +1142,8 @@ function MessageTimelineView(
       case "AssistantPart": {
         const assistantPartRow = row as Accessor<TimelineRowByTag<"AssistantPart">>
         return (
-          <TimelineRowFrame row={assistantPartRow}>
-            <div data-slot="session-turn-message-container" class={`w-full ${turnPadding()}`}>
+          <TimelineRowFrame row={assistantPartRow()}>
+            <div data-slot="session-turn-message-container" class="w-full px-4 md:px-5">
               <div
                 data-slot="session-turn-assistant-content"
                 aria-hidden={workingTurn(assistantPartRow().userMessageID)}
@@ -1157,8 +1157,8 @@ function MessageTimelineView(
       case "Thinking": {
         const thinkingRow = row as Accessor<TimelineRowByTag<"Thinking">>
         return (
-          <TimelineRowFrame row={thinkingRow}>
-            <div data-slot="session-turn-message-container" class={`w-full ${turnPadding()}`}>
+          <TimelineRowFrame row={thinkingRow()}>
+            <div data-slot="session-turn-message-container" class="w-full px-4 md:px-5">
               <TimelineThinkingRow
                 reasoningHeading={thinkingRow().reasoningHeading}
                 showReasoningSummaries={props.data.showReasoningSummaries()}
@@ -1170,8 +1170,8 @@ function MessageTimelineView(
       case "Retry": {
         const retryRow = row as Accessor<TimelineRowByTag<"Retry">>
         return (
-          <TimelineRowFrame row={retryRow}>
-            <div data-slot="session-turn-message-container" class={`w-full ${turnPadding()}`}>
+          <TimelineRowFrame row={retryRow()}>
+            <div data-slot="session-turn-message-container" class="w-full px-4 md:px-5">
               <SessionRetry status={sessionStatus()} show={activeMessageID() === retryRow().userMessageID} />
             </div>
           </TimelineRowFrame>
@@ -1187,8 +1187,8 @@ function MessageTimelineView(
           sync().project?.vcs === "git" &&
           sessionStatus().type === "idle"
         return (
-          <TimelineRowFrame row={diffSummaryRow}>
-            <div data-slot="session-turn-message-container" class={`w-full ${turnPadding()}`}>
+          <TimelineRowFrame row={diffSummaryRow()}>
+            <div data-slot="session-turn-message-container" class="w-full px-4 md:px-5">
               <TimelineDiffSummaryRow
                 diffs={diffSummaryRow().diffs}
                 action={
@@ -1215,8 +1215,8 @@ function MessageTimelineView(
       case "Error": {
         const errorRow = row as Accessor<TimelineRowByTag<"Error">>
         return (
-          <TimelineRowFrame row={errorRow}>
-            <div data-slot="session-turn-message-container" class={`w-full ${turnPadding()}`}>
+          <TimelineRowFrame row={errorRow()}>
+            <div data-slot="session-turn-message-container" class="w-full px-4 md:px-5">
               <Card variant="error" class="error-card">
                 {errorRow().text}
               </Card>
