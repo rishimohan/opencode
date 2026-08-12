@@ -72,7 +72,7 @@ describe("project directories and copies endpoints", () => {
         const create = yield* request(test.directory, copies, {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ strategy: "git_worktree", directory: createdParent, name: "copy" }),
+          body: JSON.stringify({ strategy: "git", directory: createdParent, name: "copy" }),
         })
         expect(create.status).toBe(200)
         const created = yield* json<{ directory: string }>(create)
@@ -81,7 +81,7 @@ describe("project directories and copies endpoints", () => {
         const listed = yield* request(test.directory, `${base}/directories`)
         expect(yield* json<ProjectDirectory[]>(listed)).toContainEqual({
           directory: created.directory,
-          strategy: "git_worktree",
+          strategy: "git",
         })
 
         yield* Effect.promise(() => Bun.write(path.join(created.directory, "dirty.txt"), "dirty"))
@@ -118,7 +118,7 @@ describe("project directories and copies endpoints", () => {
         expect(refresh.status).toBe(204)
         const refreshed = yield* request(test.directory, `${base}/directories`)
         expect(yield* json<ProjectDirectory[]>(refreshed)).toEqual([
-          { directory: externalDirectory, strategy: "git_worktree" },
+          { directory: externalDirectory, strategy: "git" },
           { directory: test.directory },
         ])
       }),

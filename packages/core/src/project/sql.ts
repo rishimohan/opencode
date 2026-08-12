@@ -17,6 +17,7 @@ export const ProjectTable = sqliteTable("project", {
   commands: text({ mode: "json" }).$type<{ start?: string }>(),
 })
 
+/** @deprecated Use WorktreeTable from worktree/sql instead. */
 export const ProjectDirectoryTable = sqliteTable(
   "project_directory",
   {
@@ -27,9 +28,7 @@ export const ProjectDirectoryTable = sqliteTable(
     directory: DatabasePath.absoluteColumn().notNull(),
     type: text().$type<"main" | "root" | "git_worktree">(),
     strategy: text(),
-    time_created: integer()
-      .notNull()
-      .$default(() => Date.now()),
+    time_created: integer().notNull(),
   },
   (table) => [primaryKey({ columns: [table.project_id, table.directory] })],
 )

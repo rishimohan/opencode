@@ -2,14 +2,17 @@ export * as ProjectV2 from "./project"
 export * as Project from "./project"
 
 import { Context, Effect, Layer, Schema } from "effect"
+import { asc, desc, eq } from "drizzle-orm"
 import path from "path"
 import { AbsolutePath } from "./schema"
 import { FSUtil } from "./fs-util"
 import { Git } from "./git"
 import { makeGlobalNode } from "./effect/app-node"
 import { Hash } from "./util/hash"
-import { ProjectDirectories } from "./project/directories"
 import { ProjectSchema } from "./project/schema"
+import { Database } from "./database/database"
+import { WorktreeTable } from "./worktree/sql"
+import { Worktree } from "@opencode-ai/schema/worktree"
 
 export const ID = ProjectSchema.ID
 export type ID = ProjectSchema.ID
@@ -21,10 +24,10 @@ export class Info extends Schema.Class<Info>("Project.Info")({
   id: ID,
 }) {}
 
-export const DirectoriesInput = ProjectDirectories.ListInput
+export const DirectoriesInput = Worktree.ListInput
 export type DirectoriesInput = typeof DirectoriesInput.Type
 
-export const Directories = ProjectDirectories.ListOutput
+export const Directories = Worktree.ListOutput
 export type Directories = typeof Directories.Type
 
 export interface Resolved {
@@ -56,10 +59,17 @@ const layer = Layer.effect(
   Effect.gen(function* () {
     const fs = yield* FSUtil.Service
     const git = yield* Git.Service
-    const projectDirectories = yield* ProjectDirectories.Service
+    const db = (yield* Database.Service).db
 
     const directories = Effect.fn("Project.directories")(function* (input: DirectoriesInput) {
-      return yield* projectDirectories.list(input.projectID)
+      const rows = yield* db
+        .select({ directory: WorktreeTable.directory, strategy: WorktreeTable.strategy })
+        .from(WorktreeTable)
+        .where(eq(WorktreeTable.project_id, input.projectID))
+        .orderBy(desc(WorktreeTable.time_created), asc(WorktreeTable.directory))
+        .all()
+        .pipe(Effect.orDie)
+      return rows.map((row) => ({ directory: row.directory, strategy: row.strategy ?? undefined }))
     })
 
     const cached = Effect.fnUntraced(function* (dir: string) {
@@ -132,5 +142,5 @@ const layer = Layer.effect(
 export const node = makeGlobalNode({
   service: Service,
   layer: layer,
-  deps: [FSUtil.node, Git.node, ProjectDirectories.node],
+  deps: [FSUtil.node, Git.node, Database.node],
 })

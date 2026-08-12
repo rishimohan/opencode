@@ -24,6 +24,27 @@ export default {
         );
       `)
       yield* tx.run(`
+        CREATE TABLE \`project_directory\` (
+          \`project_id\` text NOT NULL,
+          \`directory\` text NOT NULL,
+          \`type\` text,
+          \`strategy\` text,
+          \`time_created\` integer NOT NULL,
+          CONSTRAINT \`project_directory_pk\` PRIMARY KEY(\`project_id\`, \`directory\`),
+          CONSTRAINT \`fk_project_directory_project_id_project_id_fk\` FOREIGN KEY (\`project_id\`) REFERENCES \`project\`(\`id\`) ON DELETE CASCADE
+        );
+      `)
+      yield* tx.run(`
+        CREATE TABLE \`worktree\` (
+          \`project_id\` text NOT NULL,
+          \`directory\` text NOT NULL,
+          \`strategy\` text,
+          \`time_created\` integer NOT NULL,
+          CONSTRAINT \`worktree_pk\` PRIMARY KEY(\`project_id\`, \`directory\`),
+          CONSTRAINT \`fk_worktree_project_id_project_id_fk\` FOREIGN KEY (\`project_id\`) REFERENCES \`project\`(\`id\`) ON DELETE CASCADE
+        );
+      `)
+      yield* tx.run(`
         CREATE TABLE \`account_state\` (
           \`id\` integer PRIMARY KEY,
           \`active_account_id\` text,
@@ -95,17 +116,6 @@ export default {
           \`time_created\` integer NOT NULL,
           \`time_updated\` integer NOT NULL,
           CONSTRAINT \`fk_permission_project_id_project_id_fk\` FOREIGN KEY (\`project_id\`) REFERENCES \`project\`(\`id\`) ON DELETE CASCADE
-        );
-      `)
-      yield* tx.run(`
-        CREATE TABLE \`project_directory\` (
-          \`project_id\` text NOT NULL,
-          \`directory\` text NOT NULL,
-          \`type\` text,
-          \`strategy\` text,
-          \`time_created\` integer NOT NULL,
-          CONSTRAINT \`project_directory_pk\` PRIMARY KEY(\`project_id\`, \`directory\`),
-          CONSTRAINT \`fk_project_directory_project_id_project_id_fk\` FOREIGN KEY (\`project_id\`) REFERENCES \`project\`(\`id\`) ON DELETE CASCADE
         );
       `)
       yield* tx.run(`

@@ -9,12 +9,12 @@ import { Model } from "@opencode-ai/schema/model"
 import { AgentAttachment, FileAttachment, Prompt, Source } from "@opencode-ai/schema/prompt"
 import { Provider } from "@opencode-ai/schema/provider"
 import { Project } from "@opencode-ai/schema/project"
-import { ProjectDirectories } from "@opencode-ai/schema/project-directories"
 import { PermissionV1 } from "@opencode-ai/schema/permission-v1"
 import { Session } from "@opencode-ai/schema/session"
 import { SessionInput } from "@opencode-ai/schema/session-input"
 import { SessionMessage } from "@opencode-ai/schema/session-message"
 import { Workspace } from "@opencode-ai/schema/workspace"
+import { Worktree } from "@opencode-ai/schema/worktree"
 import { Command } from "@opencode-ai/schema/command"
 import { Connection } from "@opencode-ai/schema/connection"
 import { Credential } from "@opencode-ai/schema/credential"
@@ -42,7 +42,7 @@ test("Core reuses the canonical shared schemas", async () => {
     coreLLM,
     corePermission,
     corePermissionV1,
-    coreProjectCopy,
+    coreWorktree,
     corePty,
     coreProject,
     coreReference,
@@ -64,7 +64,7 @@ test("Core reuses the canonical shared schemas", async () => {
     import("@opencode-ai/llm"),
     import("@opencode-ai/core/permission"),
     import("@opencode-ai/core/v1/permission"),
-    import("@opencode-ai/core/project/copy"),
+    import("@opencode-ai/core/worktree"),
     import("@opencode-ai/core/pty"),
     import("@opencode-ai/core/project/schema"),
     import("@opencode-ai/core/reference"),
@@ -128,7 +128,10 @@ test("Core reuses the canonical shared schemas", async () => {
     [corePermission.Rule, Permission.Rule],
     [corePermission.Ruleset, Permission.Ruleset],
     [corePermissionV1.Event, PermissionV1.Event],
-    [coreProjectCopy.Event, ProjectDirectories.Event],
+    [coreWorktree.CreateInput, Worktree.CreateInput],
+    [coreWorktree.RemoveInput, Worktree.RemoveInput],
+    [coreWorktree.Info, Worktree.Info],
+    [coreWorktree.Event, Worktree.Event],
     [PluginV2.ID, Plugin.ID],
     [PluginV2.Event, Plugin.Event],
     [corePty.Info, Pty.Info],

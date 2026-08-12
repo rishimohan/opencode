@@ -1,4 +1,4 @@
-import { ProjectCopy } from "@opencode-ai/schema/project-copy"
+import { Worktree } from "@opencode-ai/schema/worktree"
 import { Project } from "@opencode-ai/schema/project"
 import { Schema, Struct } from "effect"
 import { HttpApiEndpoint, HttpApiGroup, HttpApiSchema, OpenApi } from "effect/unstable/httpapi"
@@ -17,8 +17,8 @@ export class ProjectCopyError extends Schema.ErrorClass<ProjectCopyError>("Proje
   { httpApiStatus: 400 },
 ) {}
 
-const CreatePayload = Schema.Struct(Struct.omit(ProjectCopy.CreateInput.fields, ["projectID", "sourceDirectory"]))
-const RemovePayload = Schema.Struct(Struct.omit(ProjectCopy.RemoveInput.fields, ["projectID"]))
+const CreatePayload = Schema.Struct(Struct.omit(Worktree.CreateInput.fields, ["projectID"]))
+const RemovePayload = Schema.Struct(Struct.omit(Worktree.RemoveInput.fields, ["projectID"]))
 
 export const ProjectCopyGroup = HttpApiGroup.make("server.projectCopy")
   .add(
@@ -26,7 +26,7 @@ export const ProjectCopyGroup = HttpApiGroup.make("server.projectCopy")
       params: { projectID: Project.ID },
       query: LocationQuery,
       payload: CreatePayload,
-      success: ProjectCopy.Copy,
+      success: Worktree.Info,
       error: ProjectCopyError,
     })
       .annotateMerge(locationQueryOpenApi)

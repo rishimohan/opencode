@@ -11,7 +11,6 @@ import { LayerNode } from "@opencode-ai/core/effect/layer-node"
 import { EventV2 } from "@opencode-ai/core/event"
 import { Project } from "@opencode-ai/core/project"
 import { ProjectTable } from "@opencode-ai/core/project/sql"
-import { ProjectDirectories } from "@opencode-ai/core/project/directories"
 import { AbsolutePath } from "@opencode-ai/core/schema"
 import { SessionV2 } from "@opencode-ai/core/session"
 import { SessionProjector } from "@opencode-ai/core/session/projector"
@@ -26,7 +25,6 @@ const it = testEffect(
       MoveSession.node,
       Database.node,
       EventV2.node,
-      ProjectDirectories.node,
       Project.node,
       SessionProjector.node,
       SessionStore.node,

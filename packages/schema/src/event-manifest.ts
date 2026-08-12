@@ -15,7 +15,7 @@ import { Permission } from "./permission"
 import { PermissionV1 } from "./permission-v1"
 import { Plugin } from "./plugin"
 import { Project } from "./project"
-import { ProjectDirectories } from "./project-directories"
+import { Worktree } from "./worktree"
 import { Pty } from "./pty"
 import { Question } from "./question"
 import { QuestionV1 } from "./question-v1"
@@ -48,7 +48,7 @@ const featureDefinitions = Event.inventory(
   ...Reference.Event.Definitions,
   ...Permission.Event.Definitions,
   ...Plugin.Event.Definitions,
-  ...ProjectDirectories.Event.Definitions,
+  ...Worktree.Event.Definitions,
   ...FileSystemWatcher.Event.Definitions,
   ...Pty.Event.Definitions,
   ...Question.Event.Definitions,

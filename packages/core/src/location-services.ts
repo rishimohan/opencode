@@ -19,7 +19,7 @@ import { PermissionV2 } from "./permission"
 import { PluginV2 } from "./plugin"
 import { PluginInternal } from "./plugin/internal"
 import { Policy } from "./policy"
-import { ProjectCopy } from "./project/copy"
+import { Worktree } from "./worktree"
 import { Pty } from "./pty"
 import { QuestionV2 } from "./question"
 import { Reference } from "./reference"
@@ -51,8 +51,8 @@ export const locationServices = LayerNode.group([
   AISDK.node,
   PluginV2.node,
   PluginInternal.node,
-  ProjectCopy.node,
-  ProjectCopy.refreshNode,
+  Worktree.node,
+  Worktree.refreshNode,
   FileSystemSearch.node,
   FileSystem.node,
   Watcher.node,

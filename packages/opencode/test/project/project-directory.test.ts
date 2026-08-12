@@ -8,7 +8,8 @@ import { Effect } from "effect"
 import { Hash } from "@opencode-ai/core/util/hash"
 import { AbsolutePath } from "@opencode-ai/core/schema"
 import { Database } from "@opencode-ai/core/database/database"
-import { ProjectDirectoryTable, ProjectTable } from "@opencode-ai/core/project/sql"
+import { ProjectTable } from "@opencode-ai/core/project/sql"
+import { WorktreeTable } from "@opencode-ai/core/worktree/sql"
 import { ProjectV2 } from "@opencode-ai/core/project"
 import { Project } from "@/project/project"
 import { tmpdirScoped } from "../fixture/fixture"
@@ -20,8 +21,8 @@ function directories(projectID: ProjectV2.ID) {
   return Database.Service.use(({ db }) =>
     db
       .select()
-      .from(ProjectDirectoryTable)
-      .where(eq(ProjectDirectoryTable.project_id, projectID))
+      .from(WorktreeTable)
+      .where(eq(WorktreeTable.project_id, projectID))
       .all()
       .pipe(
         Effect.orDie,
@@ -184,7 +185,7 @@ describe("Project directory persistence", () => {
       const stale = AbsolutePath.make(tmp + "-stale-checkout")
       const { db } = yield* Database.Service
       yield* db
-        .insert(ProjectDirectoryTable)
+        .insert(WorktreeTable)
         .values({ project_id: original.project.id, directory: stale })
         .run()
         .pipe(Effect.orDie)

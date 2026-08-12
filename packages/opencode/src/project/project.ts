@@ -1,8 +1,8 @@
 import { LayerNode } from "@opencode-ai/core/effect/layer-node"
 import { and, eq, sql } from "drizzle-orm"
 import { Database } from "@opencode-ai/core/database/database"
-import { ProjectDirectoryTable, ProjectTable } from "@opencode-ai/core/project/sql"
-import { ProjectDirectories } from "@opencode-ai/core/project/directories"
+import { ProjectTable } from "@opencode-ai/core/project/sql"
+import { WorktreeTable } from "@opencode-ai/core/worktree/sql"
 import { SessionTable } from "@opencode-ai/core/session/sql"
 import { WorkspaceTable } from "@opencode-ai/core/control-plane/workspace.sql"
 import { Flag } from "@opencode-ai/core/flag/flag"
@@ -109,7 +109,6 @@ const layer = Layer.effect(
     const fs = yield* FSUtil.Service
     const spawner = yield* ChildProcessSpawner.ChildProcessSpawner
     const projectV2 = yield* ProjectV2.Service
-    const projectDirectories = yield* ProjectDirectories.Service
     const events = yield* EventV2Bridge.Service
     const flags = yield* RuntimeFlags.Service
     const { db } = yield* Database.Service
@@ -172,7 +171,7 @@ const layer = Layer.effect(
               // checkouts which have diverged. Clear the directory
               // list and rely on it being re-populated to ensure
               // accuracy
-              yield* d.delete(ProjectDirectoryTable).where(eq(ProjectDirectoryTable.project_id, oldID)).run()
+              yield* d.delete(WorktreeTable).where(eq(WorktreeTable.project_id, oldID)).run()
 
               yield* d
                 .update(SessionTable)
@@ -198,11 +197,11 @@ const layer = Layer.effect(
     }) {
       if (input.projectID === ProjectV2.ID.global) return
       const opened = AbsolutePath.make(FSUtil.resolve(input.directory))
-      yield* projectDirectories
-        .create({
-          directory: opened,
-          projectID: input.projectID,
-        })
+      yield* db
+        .insert(WorktreeTable)
+        .values({ directory: opened, project_id: input.projectID })
+        .onConflictDoNothing()
+        .run()
         .pipe(
           Effect.catchCause((cause) =>
             Effect.logWarning("project directory persistence failed", { projectID: input.projectID, cause }),
@@ -473,7 +472,6 @@ export const node = LayerNode.make({
     AppProcess.node,
     CrossSpawnSpawner.node,
     ProjectV2.node,
-    ProjectDirectories.node,
     EventV2Bridge.node,
     RuntimeFlags.node,
     Database.node,
