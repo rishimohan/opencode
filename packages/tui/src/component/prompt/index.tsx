@@ -1639,7 +1639,7 @@ export function Prompt(props: PromptProps) {
             </Match>
             <Match when={move.pendingNew()}>
               <box paddingLeft={3}>
-                <text fg={theme.accent}>(new working copy)</text>
+                <text fg={theme.accent}>(new worktree)</text>
               </box>
             </Match>
             <Match when={true}>

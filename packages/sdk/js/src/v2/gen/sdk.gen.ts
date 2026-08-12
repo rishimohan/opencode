@@ -38,8 +38,6 @@ import type {
   ExperimentalConsoleSwitchOrgResponses,
   ExperimentalControlPlaneMoveSessionErrors,
   ExperimentalControlPlaneMoveSessionResponses,
-  ExperimentalProjectCopyGenerateNameErrors,
-  ExperimentalProjectCopyGenerateNameResponses,
   ExperimentalResourceListErrors,
   ExperimentalResourceListResponses,
   ExperimentalSessionBackgroundErrors,
@@ -60,6 +58,8 @@ import type {
   ExperimentalWorkspaceSyncListResponses,
   ExperimentalWorkspaceWarpErrors,
   ExperimentalWorkspaceWarpResponses,
+  ExperimentalWorktreeGenerateNameErrors,
+  ExperimentalWorktreeGenerateNameResponses,
   FileListErrors,
   FileListResponses,
   FilePartInput,
@@ -133,8 +133,6 @@ import type {
   ProjectCommands,
   ProjectCurrentErrors,
   ProjectCurrentResponses,
-  ProjectDirectoriesErrors,
-  ProjectDirectoriesResponses,
   ProjectIcon,
   ProjectInitGitErrors,
   ProjectInitGitResponses,
@@ -305,12 +303,6 @@ import type {
   V2PermissionSavedListResponses,
   V2PermissionSavedRemoveErrors,
   V2PermissionSavedRemoveResponses,
-  V2ProjectCopyCreateErrors,
-  V2ProjectCopyCreateResponses,
-  V2ProjectCopyRefreshErrors,
-  V2ProjectCopyRefreshResponses,
-  V2ProjectCopyRemoveErrors,
-  V2ProjectCopyRemoveResponses,
   V2ProviderGetErrors,
   V2ProviderGetResponses,
   V2ProviderListErrors,
@@ -385,6 +377,14 @@ import type {
   V2SessionWaitResponses,
   V2SkillListErrors,
   V2SkillListResponses,
+  V2WorktreeCreateErrors,
+  V2WorktreeCreateResponses,
+  V2WorktreeListErrors,
+  V2WorktreeListResponses,
+  V2WorktreeRefreshErrors,
+  V2WorktreeRefreshResponses,
+  V2WorktreeRemoveErrors,
+  V2WorktreeRemoveResponses,
   VcsApplyErrors,
   VcsApplyResponses,
   VcsDiffErrors,
@@ -922,11 +922,11 @@ export class Resource extends HeyApiClient {
   }
 }
 
-export class ProjectCopy extends HeyApiClient {
+export class Worktree extends HeyApiClient {
   /**
-   * Generate project copy name
+   * Generate worktree name
    *
-   * Generate a short name for a project copy from task context.
+   * Generate a short worktree name from task context.
    */
   public generateName<ThrowOnError extends boolean = false>(
     parameters: {
@@ -951,11 +951,11 @@ export class ProjectCopy extends HeyApiClient {
       ],
     )
     return (options?.client ?? this.client).post<
-      ExperimentalProjectCopyGenerateNameResponses,
-      ExperimentalProjectCopyGenerateNameErrors,
+      ExperimentalWorktreeGenerateNameResponses,
+      ExperimentalWorktreeGenerateNameErrors,
       ThrowOnError
     >({
-      url: "/experimental/project/{projectID}/copy/generate-name",
+      url: "/experimental/project/{projectID}/worktree/generate-name",
       ...options,
       ...params,
       headers: {
@@ -1266,9 +1266,9 @@ export class Experimental extends HeyApiClient {
     return (this._resource ??= new Resource({ client: this.client }))
   }
 
-  private _projectCopy?: ProjectCopy
-  get projectCopy(): ProjectCopy {
-    return (this._projectCopy ??= new ProjectCopy({ client: this.client }))
+  private _worktree?: Worktree
+  get worktree(): Worktree {
+    return (this._worktree ??= new Worktree({ client: this.client }))
   }
 
   private _workspace?: Workspace
@@ -1579,7 +1579,7 @@ export class Tool extends HeyApiClient {
   }
 }
 
-export class Worktree extends HeyApiClient {
+export class Worktree2 extends HeyApiClient {
   /**
    * Remove worktree
    *
@@ -2658,38 +2658,6 @@ export class Project extends HeyApiClient {
         ...options?.headers,
         ...params.headers,
       },
-    })
-  }
-
-  /**
-   * List project directories
-   *
-   * List known local absolute directories for a project.
-   */
-  public directories<ThrowOnError extends boolean = false>(
-    parameters: {
-      projectID: string
-      directory?: string
-      workspace?: string
-    },
-    options?: Options<never, ThrowOnError>,
-  ) {
-    const params = buildClientParams(
-      [parameters],
-      [
-        {
-          args: [
-            { in: "path", key: "projectID" },
-            { in: "query", key: "directory" },
-            { in: "query", key: "workspace" },
-          ],
-        },
-      ],
-    )
-    return (options?.client ?? this.client).get<ProjectDirectoriesResponses, ProjectDirectoriesErrors, ThrowOnError>({
-      url: "/project/{projectID}/directories",
-      ...options,
-      ...params,
     })
   }
 }
@@ -6871,14 +6839,15 @@ export class Reference extends HeyApiClient {
   }
 }
 
-export class ProjectCopy2 extends HeyApiClient {
+export class Worktree3 extends HeyApiClient {
+  /**
+   * Remove worktree
+   *
+   * Remove a managed worktree from a project.
+   */
   public remove<ThrowOnError extends boolean = false>(
     parameters: {
       projectID: string
-      location?: {
-        directory?: string
-        workspace?: string
-      }
       directory?: string
       force?: boolean
     },
@@ -6890,19 +6859,14 @@ export class ProjectCopy2 extends HeyApiClient {
         {
           args: [
             { in: "path", key: "projectID" },
-            { in: "query", key: "location" },
             { in: "body", key: "directory" },
             { in: "body", key: "force" },
           ],
         },
       ],
     )
-    return (options?.client ?? this.client).delete<
-      V2ProjectCopyRemoveResponses,
-      V2ProjectCopyRemoveErrors,
-      ThrowOnError
-    >({
-      url: "/experimental/project/{projectID}/copy",
+    return (options?.client ?? this.client).delete<V2WorktreeRemoveResponses, V2WorktreeRemoveErrors, ThrowOnError>({
+      url: "/experimental/project/{projectID}/worktree",
       ...options,
       ...params,
       headers: {
@@ -6913,13 +6877,33 @@ export class ProjectCopy2 extends HeyApiClient {
     })
   }
 
+  /**
+   * List worktrees
+   *
+   * List known local worktrees for a project.
+   */
+  public list<ThrowOnError extends boolean = false>(
+    parameters: {
+      projectID: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "path", key: "projectID" }] }])
+    return (options?.client ?? this.client).get<V2WorktreeListResponses, V2WorktreeListErrors, ThrowOnError>({
+      url: "/experimental/project/{projectID}/worktree",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Create worktree
+   *
+   * Create a worktree for a project.
+   */
   public create<ThrowOnError extends boolean = false>(
     parameters: {
       projectID: string
-      location?: {
-        directory?: string
-        workspace?: string
-      }
       strategy?: string
       directory?: string
       name?: string
@@ -6932,7 +6916,6 @@ export class ProjectCopy2 extends HeyApiClient {
         {
           args: [
             { in: "path", key: "projectID" },
-            { in: "query", key: "location" },
             { in: "body", key: "strategy" },
             { in: "body", key: "directory" },
             { in: "body", key: "name" },
@@ -6940,47 +6923,32 @@ export class ProjectCopy2 extends HeyApiClient {
         },
       ],
     )
-    return (options?.client ?? this.client).post<V2ProjectCopyCreateResponses, V2ProjectCopyCreateErrors, ThrowOnError>(
-      {
-        url: "/experimental/project/{projectID}/copy",
-        ...options,
-        ...params,
-        headers: {
-          "Content-Type": "application/json",
-          ...options?.headers,
-          ...params.headers,
-        },
+    return (options?.client ?? this.client).post<V2WorktreeCreateResponses, V2WorktreeCreateErrors, ThrowOnError>({
+      url: "/experimental/project/{projectID}/worktree",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
       },
-    )
+    })
   }
 
+  /**
+   * Refresh worktrees
+   *
+   * Reconcile stored worktrees with the project repositories.
+   */
   public refresh<ThrowOnError extends boolean = false>(
     parameters: {
       projectID: string
-      location?: {
-        directory?: string
-        workspace?: string
-      }
     },
     options?: Options<never, ThrowOnError>,
   ) {
-    const params = buildClientParams(
-      [parameters],
-      [
-        {
-          args: [
-            { in: "path", key: "projectID" },
-            { in: "query", key: "location" },
-          ],
-        },
-      ],
-    )
-    return (options?.client ?? this.client).post<
-      V2ProjectCopyRefreshResponses,
-      V2ProjectCopyRefreshErrors,
-      ThrowOnError
-    >({
-      url: "/experimental/project/{projectID}/copy/refresh",
+    const params = buildClientParams([parameters], [{ args: [{ in: "path", key: "projectID" }] }])
+    return (options?.client ?? this.client).post<V2WorktreeRefreshResponses, V2WorktreeRefreshErrors, ThrowOnError>({
+      url: "/experimental/project/{projectID}/worktree/refresh",
       ...options,
       ...params,
     })
@@ -7068,9 +7036,9 @@ export class V2 extends HeyApiClient {
     return (this._reference ??= new Reference({ client: this.client }))
   }
 
-  private _projectCopy?: ProjectCopy2
-  get projectCopy(): ProjectCopy2 {
-    return (this._projectCopy ??= new ProjectCopy2({ client: this.client }))
+  private _worktree?: Worktree3
+  get worktree(): Worktree3 {
+    return (this._worktree ??= new Worktree3({ client: this.client }))
   }
 }
 
@@ -7117,9 +7085,9 @@ export class OpencodeClient extends HeyApiClient {
     return (this._tool ??= new Tool({ client: this.client }))
   }
 
-  private _worktree?: Worktree
-  get worktree(): Worktree {
-    return (this._worktree ??= new Worktree({ client: this.client }))
+  private _worktree?: Worktree2
+  get worktree(): Worktree2 {
+    return (this._worktree ??= new Worktree2({ client: this.client }))
   }
 
   private _find?: Find

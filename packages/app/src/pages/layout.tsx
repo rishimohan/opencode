@@ -1189,7 +1189,11 @@ export default function LegacyLayout(props: ParentProps) {
         project?.id ?? serverSDK().api.project.current({ location: { directory: root } }),
       )
         .then((value) => (typeof value === "string" ? value : value.id))
-        .then((projectID) => serverSDK().api.project.directories({ projectID, location: { directory: root } }))
+        .then((projectID) =>
+          serverSDK()
+            .client.v2.worktree.list({ projectID }, { throwOnError: true })
+            .then((response) => response.data ?? []),
+        )
         .then((items) => items.map((item) => item.directory).filter((item) => pathKey(item) !== pathKey(root)))
         .catch(() => [] as string[])
       dirs = effectiveWorkspaceOrder(root, [root, ...listed], store.workspaceOrder[root])

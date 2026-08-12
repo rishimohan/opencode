@@ -31,16 +31,15 @@ export function usePromptMove(input: { projectID: () => string | undefined; sess
     const projectID = input.projectID()
     if (!projectID) return
     setCreating(true)
-    setProgress("Creating copy")
+    setProgress("Creating worktree")
     try {
-      const generated = await sdk.client.experimental.projectCopy.generateName(
+      const generated = await sdk.client.experimental.worktree.generateName(
         { projectID, context },
         { throwOnError: true },
       )
-      const result = await sdk.client.v2.projectCopy.create(
+      const result = await sdk.client.v2.worktree.create(
         {
           projectID,
-          location: { directory: sdk.directory },
           strategy: "git",
           directory: path.join(paths.worktree, projectID.slice(0, 6)),
           name: generated.data.name,
@@ -48,7 +47,7 @@ export function usePromptMove(input: { projectID: () => string | undefined; sess
         { throwOnError: true },
       )
       const directory = result.data?.directory
-      if (!directory) throw new Error("No project copy directory returned")
+      if (!directory) throw new Error("No worktree directory returned")
 
       // Call a location-based route to make sure it's bootstrapped
       // before moving on

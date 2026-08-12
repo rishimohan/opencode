@@ -11,6 +11,7 @@ import { SessionExecution } from "@opencode-ai/core/session/execution"
 import { LocationServiceMap } from "@opencode-ai/core/location-service-map"
 import { SessionExecutionLocal } from "@opencode-ai/core/session/execution/local"
 import { ToolOutputStore } from "@opencode-ai/core/tool-output-store"
+import { Worktree } from "@opencode-ai/core/worktree"
 import { HttpRouter, HttpServer } from "effect/unstable/http"
 import { HttpApiBuilder } from "effect/unstable/httpapi"
 import { Layer, Option } from "effect"
@@ -33,6 +34,7 @@ const applicationServices = LayerNode.group([
   PtyTicket.node,
   Credential.node,
   PtyEnvironment.node,
+  Worktree.node,
   LocationServiceMap.node,
 ])
 

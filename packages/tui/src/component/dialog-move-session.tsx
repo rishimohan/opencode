@@ -16,11 +16,11 @@ import { useCommandShortcut } from "../keymap"
 import { useProject } from "../context/project"
 import { Spinner } from "./spinner"
 import { DialogWorkspaceFileChanges } from "./dialog-workspace-file-changes"
-import type { ProjectDirectories } from "@opencode-ai/sdk/v2"
+import type { WorktreeList } from "@opencode-ai/sdk/v2"
 import { useRoute } from "../context/route"
 
 export type MoveSessionSelection = { type: "directory"; directory: string; subdirectory: boolean } | { type: "new" }
-type ProjectDirectory = ProjectDirectories[number]
+type ProjectDirectory = WorktreeList[number]
 
 type DialogMoveSessionProps = {
   projectID: string
@@ -74,11 +74,8 @@ export function DialogMoveSession(props: DialogMoveSessionProps) {
     () => (props.initialRemoving ? undefined : props.projectID),
     async (projectID, info): Promise<ProjectDirectory[] | undefined> => {
       try {
-        await sdk.client.v2.projectCopy.refresh(
-          { projectID, location: { directory: sdk.directory } },
-          { throwOnError: true },
-        )
-        const directories = await sdk.client.project.directories({ projectID }, { throwOnError: true })
+        await sdk.client.v2.worktree.refresh({ projectID }, { throwOnError: true })
+        const directories = await sdk.client.v2.worktree.list({ projectID }, { throwOnError: true })
         setLoadError(undefined)
         return directories.data ?? []
       } catch (error) {
@@ -221,10 +218,9 @@ export function DialogMoveSession(props: DialogMoveSessionProps) {
     setToDelete(undefined)
     setRemoving(selected.directory)
     setWorking(true)
-    const result = await sdk.client.v2.projectCopy
+    const result = await sdk.client.v2.worktree
       .remove({
         projectID: props.projectID,
-        location: { directory: sdk.directory },
         directory: selected.directory,
         force: false,
       })
@@ -235,18 +231,17 @@ export function DialogMoveSession(props: DialogMoveSessionProps) {
       if ("data" in result.error && result.error.data.forceRequired) {
         const status = await sdk.client.vcs.status({ directory: selected.directory }).catch(() => undefined)
         const choice = await DialogWorkspaceFileChanges.show(dialog, status?.data ?? [], {
-          title: "Delete working copy?",
-          message: "This working copy has file changes. Do you want to delete it anyway?",
+          title: "Delete worktree?",
+          message: "This worktree has file changes. Do you want to delete it anyway?",
         })
         if (choice !== "yes") {
           reopen()
           return
         }
         reopen(selected.directory)
-        const forced = await sdk.client.v2.projectCopy
+        const forced = await sdk.client.v2.worktree
           .remove({
             projectID: props.projectID,
-            location: { directory: sdk.directory },
             directory: selected.directory,
             force: true,
           })
@@ -254,7 +249,7 @@ export function DialogMoveSession(props: DialogMoveSessionProps) {
         if (forced.error) {
           toast.show({
             variant: "error",
-            title: "Failed to delete project copy",
+            title: "Failed to delete worktree",
             message: errorMessage(forced.error),
           })
           reopen()
@@ -268,7 +263,7 @@ export function DialogMoveSession(props: DialogMoveSessionProps) {
       }
       toast.show({
         variant: "error",
-        title: "Failed to delete project copy",
+        title: "Failed to delete worktree",
         message: errorMessage(result.error),
       })
       return

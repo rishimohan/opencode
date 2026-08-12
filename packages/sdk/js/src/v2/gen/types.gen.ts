@@ -58,7 +58,7 @@ export type Event =
   | EventPermissionV2Asked
   | EventPermissionV2Replied
   | EventPluginAdded
-  | EventProjectDirectoriesUpdated
+  | EventWorktreeUpdated
   | EventFileWatcherUpdated
   | EventPtyCreated
   | EventPtyUpdated
@@ -1286,7 +1286,7 @@ export type GlobalEvent = {
       }
     | {
         id: string
-        type: "project.directories.updated"
+        type: "worktree.updated"
         properties: {
           projectID: string
         }
@@ -2906,7 +2906,7 @@ export type V2Event =
   | PermissionV2Asked
   | PermissionV2Replied
   | PluginAdded
-  | ProjectDirectoriesUpdated
+  | WorktreeUpdated
   | FileWatcherUpdated
   | PtyCreated
   | PtyUpdated
@@ -2949,8 +2949,8 @@ export type ForbiddenError = {
   message: string
 }
 
-export type ProjectCopyError = {
-  name: "ProjectCopyError"
+export type V2WorktreeError = {
+  name: "WorktreeError"
   data: {
     message: string
     forceRequired?: boolean
@@ -3843,11 +3843,6 @@ export type ConfigV2ExperimentalPolicy = {
   effect: PolicyEffect
   resource: string
 }
-
-export type ProjectDirectories = Array<{
-  directory: string
-  strategy?: string
-}>
 
 export type PtyTicketConnectToken = {
   ticket: string
@@ -5494,12 +5489,12 @@ export type PluginAdded = {
   }
 }
 
-export type ProjectDirectoriesUpdated = {
+export type WorktreeUpdated = {
   id: string
   metadata?: {
     [key: string]: unknown
   }
-  type: "project.directories.updated"
+  type: "worktree.updated"
   durable?: {
     aggregateID: string
     seq: number
@@ -6147,7 +6142,12 @@ export type ReferenceInfo = {
   source: ReferenceSource
 }
 
-export type ProjectCopyCopy = {
+export type WorktreeList = Array<{
+  directory: string
+  strategy?: string
+}>
+
+export type WorktreeInfo = {
   directory: string
 }
 
@@ -6756,9 +6756,9 @@ export type EventPluginAdded = {
   }
 }
 
-export type EventProjectDirectoriesUpdated = {
+export type EventWorktreeUpdated = {
   id: string
-  type: "project.directories.updated"
+  type: "worktree.updated"
   properties: {
     projectID: string
   }
@@ -8824,37 +8824,7 @@ export type ProjectUpdateResponses = {
 
 export type ProjectUpdateResponse = ProjectUpdateResponses[keyof ProjectUpdateResponses]
 
-export type ProjectDirectoriesData = {
-  body?: never
-  path: {
-    projectID: string
-  }
-  query?: {
-    directory?: string
-    workspace?: string
-  }
-  url: "/project/{projectID}/directories"
-}
-
-export type ProjectDirectoriesErrors = {
-  /**
-   * Bad request
-   */
-  400: BadRequestError
-}
-
-export type ProjectDirectoriesError = ProjectDirectoriesErrors[keyof ProjectDirectoriesErrors]
-
-export type ProjectDirectoriesResponses = {
-  /**
-   * Project directories
-   */
-  200: ProjectDirectories
-}
-
-export type ProjectDirectoriesResponse = ProjectDirectoriesResponses[keyof ProjectDirectoriesResponses]
-
-export type ExperimentalProjectCopyGenerateNameData = {
+export type ExperimentalWorktreeGenerateNameData = {
   body?: {
     context?: string
   }
@@ -8865,20 +8835,20 @@ export type ExperimentalProjectCopyGenerateNameData = {
     directory?: string
     workspace?: string
   }
-  url: "/experimental/project/{projectID}/copy/generate-name"
+  url: "/experimental/project/{projectID}/worktree/generate-name"
 }
 
-export type ExperimentalProjectCopyGenerateNameErrors = {
+export type ExperimentalWorktreeGenerateNameErrors = {
   /**
    * Bad request
    */
   400: BadRequestError
 }
 
-export type ExperimentalProjectCopyGenerateNameError =
-  ExperimentalProjectCopyGenerateNameErrors[keyof ExperimentalProjectCopyGenerateNameErrors]
+export type ExperimentalWorktreeGenerateNameError =
+  ExperimentalWorktreeGenerateNameErrors[keyof ExperimentalWorktreeGenerateNameErrors]
 
-export type ExperimentalProjectCopyGenerateNameResponses = {
+export type ExperimentalWorktreeGenerateNameResponses = {
   /**
    * Success
    */
@@ -8887,8 +8857,8 @@ export type ExperimentalProjectCopyGenerateNameResponses = {
   }
 }
 
-export type ExperimentalProjectCopyGenerateNameResponse =
-  ExperimentalProjectCopyGenerateNameResponses[keyof ExperimentalProjectCopyGenerateNameResponses]
+export type ExperimentalWorktreeGenerateNameResponse =
+  ExperimentalWorktreeGenerateNameResponses[keyof ExperimentalWorktreeGenerateNameResponses]
 
 export type PtyShellsData = {
   body?: never
@@ -13482,7 +13452,7 @@ export type V2ReferenceListResponses = {
 
 export type V2ReferenceListResponse = V2ReferenceListResponses[keyof V2ReferenceListResponses]
 
-export type V2ProjectCopyRemoveData = {
+export type V2WorktreeRemoveData = {
   body?: {
     directory: string
     force: boolean
@@ -13490,34 +13460,56 @@ export type V2ProjectCopyRemoveData = {
   path: {
     projectID: string
   }
-  query?: {
-    location?: {
-      directory?: string
-      workspace?: string
-    }
-  }
-  url: "/experimental/project/{projectID}/copy"
+  query?: never
+  url: "/experimental/project/{projectID}/worktree"
 }
 
-export type V2ProjectCopyRemoveErrors = {
+export type V2WorktreeRemoveErrors = {
   /**
-   * ProjectCopyError | InvalidRequestError
+   * V2WorktreeError | InvalidRequestError
    */
-  400: ProjectCopyError | InvalidRequestError
+  400: V2WorktreeError | InvalidRequestError
 }
 
-export type V2ProjectCopyRemoveError = V2ProjectCopyRemoveErrors[keyof V2ProjectCopyRemoveErrors]
+export type V2WorktreeRemoveError = V2WorktreeRemoveErrors[keyof V2WorktreeRemoveErrors]
 
-export type V2ProjectCopyRemoveResponses = {
+export type V2WorktreeRemoveResponses = {
   /**
    * <No Content>
    */
   204: void
 }
 
-export type V2ProjectCopyRemoveResponse = V2ProjectCopyRemoveResponses[keyof V2ProjectCopyRemoveResponses]
+export type V2WorktreeRemoveResponse = V2WorktreeRemoveResponses[keyof V2WorktreeRemoveResponses]
 
-export type V2ProjectCopyCreateData = {
+export type V2WorktreeListData = {
+  body?: never
+  path: {
+    projectID: string
+  }
+  query?: never
+  url: "/experimental/project/{projectID}/worktree"
+}
+
+export type V2WorktreeListErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type V2WorktreeListError = V2WorktreeListErrors[keyof V2WorktreeListErrors]
+
+export type V2WorktreeListResponses = {
+  /**
+   * Worktree.List
+   */
+  200: WorktreeList
+}
+
+export type V2WorktreeListResponse = V2WorktreeListResponses[keyof V2WorktreeListResponses]
+
+export type V2WorktreeCreateData = {
   body?: {
     strategy: string
     directory: string
@@ -13526,64 +13518,54 @@ export type V2ProjectCopyCreateData = {
   path: {
     projectID: string
   }
-  query?: {
-    location?: {
-      directory?: string
-      workspace?: string
-    }
-  }
-  url: "/experimental/project/{projectID}/copy"
+  query?: never
+  url: "/experimental/project/{projectID}/worktree"
 }
 
-export type V2ProjectCopyCreateErrors = {
+export type V2WorktreeCreateErrors = {
   /**
-   * ProjectCopyError | InvalidRequestError
+   * V2WorktreeError | InvalidRequestError
    */
-  400: ProjectCopyError | InvalidRequestError
+  400: V2WorktreeError | InvalidRequestError
 }
 
-export type V2ProjectCopyCreateError = V2ProjectCopyCreateErrors[keyof V2ProjectCopyCreateErrors]
+export type V2WorktreeCreateError = V2WorktreeCreateErrors[keyof V2WorktreeCreateErrors]
 
-export type V2ProjectCopyCreateResponses = {
+export type V2WorktreeCreateResponses = {
   /**
-   * ProjectCopy.Copy
+   * Worktree.Info
    */
-  200: ProjectCopyCopy
+  200: WorktreeInfo
 }
 
-export type V2ProjectCopyCreateResponse = V2ProjectCopyCreateResponses[keyof V2ProjectCopyCreateResponses]
+export type V2WorktreeCreateResponse = V2WorktreeCreateResponses[keyof V2WorktreeCreateResponses]
 
-export type V2ProjectCopyRefreshData = {
+export type V2WorktreeRefreshData = {
   body?: never
   path: {
     projectID: string
   }
-  query?: {
-    location?: {
-      directory?: string
-      workspace?: string
-    }
-  }
-  url: "/experimental/project/{projectID}/copy/refresh"
+  query?: never
+  url: "/experimental/project/{projectID}/worktree/refresh"
 }
 
-export type V2ProjectCopyRefreshErrors = {
+export type V2WorktreeRefreshErrors = {
   /**
-   * ProjectCopyError | InvalidRequestError
+   * V2WorktreeError | InvalidRequestError
    */
-  400: ProjectCopyError | InvalidRequestError
+  400: V2WorktreeError | InvalidRequestError
 }
 
-export type V2ProjectCopyRefreshError = V2ProjectCopyRefreshErrors[keyof V2ProjectCopyRefreshErrors]
+export type V2WorktreeRefreshError = V2WorktreeRefreshErrors[keyof V2WorktreeRefreshErrors]
 
-export type V2ProjectCopyRefreshResponses = {
+export type V2WorktreeRefreshResponses = {
   /**
    * <No Content>
    */
   204: void
 }
 
-export type V2ProjectCopyRefreshResponse = V2ProjectCopyRefreshResponses[keyof V2ProjectCopyRefreshResponses]
+export type V2WorktreeRefreshResponse = V2WorktreeRefreshResponses[keyof V2WorktreeRefreshResponses]
 
 export type PtyConnectData = {
   body?: never

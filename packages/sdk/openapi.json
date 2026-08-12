@@ -3865,72 +3865,10 @@
         ]
       }
     },
-    "/project/{projectID}/directories": {
-      "get": {
-        "tags": ["project"],
-        "operationId": "project.directories",
-        "parameters": [
-          {
-            "name": "projectID",
-            "in": "path",
-            "schema": {
-              "type": "string"
-            },
-            "required": true
-          },
-          {
-            "name": "directory",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "required": false
-          },
-          {
-            "name": "workspace",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            },
-            "required": false
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Project directories",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProjectDirectories"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BadRequestError"
-                }
-              }
-            }
-          }
-        },
-        "description": "List known local absolute directories for a project.",
-        "summary": "List project directories",
-        "x-codeSamples": [
-          {
-            "lang": "js",
-            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.project.directories({\n  ...\n})"
-          }
-        ]
-      }
-    },
-    "/experimental/project/{projectID}/copy/generate-name": {
+    "/experimental/project/{projectID}/worktree/generate-name": {
       "post": {
-        "tags": ["projectCopy"],
-        "operationId": "experimental.projectCopy.generateName",
+        "tags": ["worktree"],
+        "operationId": "experimental.worktree.generateName",
         "parameters": [
           {
             "name": "projectID",
@@ -3986,8 +3924,8 @@
             }
           }
         },
-        "description": "Generate a short name for a project copy from task context.",
-        "summary": "Generate project copy name",
+        "description": "Generate a short worktree name from task context.",
+        "summary": "Generate worktree name",
         "requestBody": {
           "content": {
             "application/json": {
@@ -4006,7 +3944,7 @@
         "x-codeSamples": [
           {
             "lang": "js",
-            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.experimental.projectCopy.generateName({\n  ...\n})"
+            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.experimental.worktree.generateName({\n  ...\n})"
           }
         ]
       }
@@ -14933,10 +14871,10 @@
         ]
       }
     },
-    "/experimental/project/{projectID}/copy": {
-      "post": {
-        "tags": ["projectCopy"],
-        "operationId": "v2.projectCopy.create",
+    "/experimental/project/{projectID}/worktree": {
+      "get": {
+        "tags": ["worktree"],
+        "operationId": "v2.worktree.list",
         "parameters": [
           {
             "name": "projectID",
@@ -14945,46 +14883,71 @@
               "type": "string"
             },
             "required": true
-          },
-          {
-            "name": "location",
-            "in": "query",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "directory": {
-                  "type": "string"
-                },
-                "workspace": {
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            },
-            "required": false,
-            "style": "deepObject",
-            "explode": true
           }
         ],
         "responses": {
           "200": {
-            "description": "ProjectCopy.Copy",
+            "description": "Worktree.List",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProjectCopyCopy"
+                  "$ref": "#/components/schemas/WorktreeList"
                 }
               }
             }
           },
           "400": {
-            "description": "ProjectCopyError | InvalidRequestError",
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestError"
+                }
+              }
+            }
+          }
+        },
+        "description": "List known local worktrees for a project.",
+        "summary": "List worktrees",
+        "x-codeSamples": [
+          {
+            "lang": "js",
+            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.v2.worktree.list({\n  ...\n})"
+          }
+        ]
+      },
+      "post": {
+        "tags": ["worktree"],
+        "operationId": "v2.worktree.create",
+        "parameters": [
+          {
+            "name": "projectID",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Worktree.Info",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorktreeInfo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "V2WorktreeError | InvalidRequestError",
             "content": {
               "application/json": {
                 "schema": {
                   "anyOf": [
                     {
-                      "$ref": "#/components/schemas/ProjectCopyError"
+                      "$ref": "#/components/schemas/V2WorktreeError"
                     },
                     {
                       "$ref": "#/components/schemas/InvalidRequestError"
@@ -14995,6 +14958,8 @@
             }
           }
         },
+        "description": "Create a worktree for a project.",
+        "summary": "Create worktree",
         "requestBody": {
           "content": {
             "application/json": {
@@ -15020,13 +14985,13 @@
         "x-codeSamples": [
           {
             "lang": "js",
-            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.v2.projectCopy.create({\n  ...\n})"
+            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.v2.worktree.create({\n  ...\n})"
           }
         ]
       },
       "delete": {
-        "tags": ["projectCopy"],
-        "operationId": "v2.projectCopy.remove",
+        "tags": ["worktree"],
+        "operationId": "v2.worktree.remove",
         "parameters": [
           {
             "name": "projectID",
@@ -15035,25 +15000,6 @@
               "type": "string"
             },
             "required": true
-          },
-          {
-            "name": "location",
-            "in": "query",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "directory": {
-                  "type": "string"
-                },
-                "workspace": {
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            },
-            "required": false,
-            "style": "deepObject",
-            "explode": true
           }
         ],
         "responses": {
@@ -15061,13 +15007,13 @@
             "description": "<No Content>"
           },
           "400": {
-            "description": "ProjectCopyError | InvalidRequestError",
+            "description": "V2WorktreeError | InvalidRequestError",
             "content": {
               "application/json": {
                 "schema": {
                   "anyOf": [
                     {
-                      "$ref": "#/components/schemas/ProjectCopyError"
+                      "$ref": "#/components/schemas/V2WorktreeError"
                     },
                     {
                       "$ref": "#/components/schemas/InvalidRequestError"
@@ -15078,6 +15024,8 @@
             }
           }
         },
+        "description": "Remove a managed worktree from a project.",
+        "summary": "Remove worktree",
         "requestBody": {
           "content": {
             "application/json": {
@@ -15100,15 +15048,15 @@
         "x-codeSamples": [
           {
             "lang": "js",
-            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.v2.projectCopy.remove({\n  ...\n})"
+            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.v2.worktree.remove({\n  ...\n})"
           }
         ]
       }
     },
-    "/experimental/project/{projectID}/copy/refresh": {
+    "/experimental/project/{projectID}/worktree/refresh": {
       "post": {
-        "tags": ["projectCopy"],
-        "operationId": "v2.projectCopy.refresh",
+        "tags": ["worktree"],
+        "operationId": "v2.worktree.refresh",
         "parameters": [
           {
             "name": "projectID",
@@ -15117,25 +15065,6 @@
               "type": "string"
             },
             "required": true
-          },
-          {
-            "name": "location",
-            "in": "query",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "directory": {
-                  "type": "string"
-                },
-                "workspace": {
-                  "type": "string"
-                }
-              },
-              "additionalProperties": false
-            },
-            "required": false,
-            "style": "deepObject",
-            "explode": true
           }
         ],
         "responses": {
@@ -15143,13 +15072,13 @@
             "description": "<No Content>"
           },
           "400": {
-            "description": "ProjectCopyError | InvalidRequestError",
+            "description": "V2WorktreeError | InvalidRequestError",
             "content": {
               "application/json": {
                 "schema": {
                   "anyOf": [
                     {
-                      "$ref": "#/components/schemas/ProjectCopyError"
+                      "$ref": "#/components/schemas/V2WorktreeError"
                     },
                     {
                       "$ref": "#/components/schemas/InvalidRequestError"
@@ -15160,10 +15089,12 @@
             }
           }
         },
+        "description": "Reconcile stored worktrees with the project repositories.",
+        "summary": "Refresh worktrees",
         "x-codeSamples": [
           {
             "lang": "js",
-            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.v2.projectCopy.refresh({\n  ...\n})"
+            "source": "import { createOpencodeClient } from \"@opencode-ai/sdk\n\nconst client = createOpencodeClient()\nawait client.v2.worktree.refresh({\n  ...\n})"
           }
         ]
       }
@@ -15419,7 +15350,7 @@
             "$ref": "#/components/schemas/EventPluginAdded"
           },
           {
-            "$ref": "#/components/schemas/EventProjectDirectoriesUpdated"
+            "$ref": "#/components/schemas/EventWorktreeUpdated"
           },
           {
             "$ref": "#/components/schemas/EventFileWatcherUpdated"
@@ -19354,7 +19285,7 @@
                   },
                   "type": {
                     "type": "string",
-                    "enum": ["project.directories.updated"]
+                    "enum": ["worktree.updated"]
                   },
                   "properties": {
                     "type": "object",
@@ -24162,7 +24093,7 @@
             "$ref": "#/components/schemas/PluginAdded"
           },
           {
-            "$ref": "#/components/schemas/ProjectDirectoriesUpdated"
+            "$ref": "#/components/schemas/WorktreeUpdated"
           },
           {
             "$ref": "#/components/schemas/FileWatcherUpdated"
@@ -24289,12 +24220,12 @@
         "required": ["_tag", "message"],
         "additionalProperties": false
       },
-      "ProjectCopyError": {
+      "V2WorktreeError": {
         "type": "object",
         "properties": {
           "name": {
             "type": "string",
-            "enum": ["ProjectCopyError"]
+            "enum": ["WorktreeError"]
           },
           "data": {
             "type": "object",
@@ -27068,22 +26999,6 @@
         },
         "required": ["action", "effect", "resource"],
         "additionalProperties": false
-      },
-      "ProjectDirectories": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "directory": {
-              "type": "string"
-            },
-            "strategy": {
-              "type": "string"
-            }
-          },
-          "required": ["directory"],
-          "additionalProperties": false
-        }
       },
       "PtyTicketConnectToken": {
         "type": "object",
@@ -32021,7 +31936,7 @@
         "required": ["id", "type", "data"],
         "additionalProperties": false
       },
-      "ProjectDirectoriesUpdated": {
+      "WorktreeUpdated": {
         "type": "object",
         "properties": {
           "id": {
@@ -32033,7 +31948,7 @@
           },
           "type": {
             "type": "string",
-            "enum": ["project.directories.updated"]
+            "enum": ["worktree.updated"]
           },
           "durable": {
             "type": "object",
@@ -33814,7 +33729,23 @@
         "required": ["name", "path", "source"],
         "additionalProperties": false
       },
-      "ProjectCopyCopy": {
+      "WorktreeList": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "directory": {
+              "type": "string"
+            },
+            "strategy": {
+              "type": "string"
+            }
+          },
+          "required": ["directory"],
+          "additionalProperties": false
+        }
+      },
+      "WorktreeInfo": {
         "type": "object",
         "properties": {
           "directory": {
@@ -35748,7 +35679,7 @@
         "required": ["id", "type", "properties"],
         "additionalProperties": false
       },
-      "EventProjectDirectoriesUpdated": {
+      "EventWorktreeUpdated": {
         "type": "object",
         "properties": {
           "id": {
@@ -35757,7 +35688,7 @@
           },
           "type": {
             "type": "string",
-            "enum": ["project.directories.updated"]
+            "enum": ["worktree.updated"]
           },
           "properties": {
             "type": "object",
@@ -36834,8 +36765,8 @@
       "description": "Experimental HttpApi project routes."
     },
     {
-      "name": "projectCopy",
-      "description": "Project copy naming routes."
+      "name": "worktree",
+      "description": "Worktree naming routes."
     },
     {
       "name": "pty",
@@ -36938,8 +36869,8 @@
       "description": "Location-scoped project references."
     },
     {
-      "name": "projectCopy",
-      "description": "Project copy management routes."
+      "name": "worktree",
+      "description": "Project worktree management routes."
     },
     {
       "name": "pty",
