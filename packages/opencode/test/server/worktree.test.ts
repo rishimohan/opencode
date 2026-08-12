@@ -39,29 +39,28 @@ function json<T>(response: HttpClientResponse.HttpClientResponse) {
   return response.json.pipe(Effect.map((value) => value as T))
 }
 
-describe("project directories and copies endpoints", () => {
-  type ProjectDirectory = { directory: string; strategy?: string }
+describe("worktree endpoints", () => {
+  type WorktreeInfo = { directory: string; strategy?: string }
 
   it.instance(
-    "lists directories and manages git worktree copies",
+    "lists and manages git worktrees",
     () =>
       Effect.gen(function* () {
         const test = yield* TestInstance
         const current = yield* request(test.directory, "/project/current")
         const projectID = (yield* json<{ id: string }>(current)).id
-        const base = `/project/${projectID}`
-        const copies = `/experimental/project/${projectID}/copy?location%5Bdirectory%5D=${encodeURIComponent(test.directory)}`
-        const createdParent = path.join(test.directory, "..", path.basename(test.directory) + "-http-copy")
-        const createdDirectory = path.join(createdParent, "copy")
+        const worktrees = `/experimental/project/${projectID}/worktree`
+        const createdParent = path.join(test.directory, "..", path.basename(test.directory) + "-http-worktree")
+        const createdDirectory = path.join(createdParent, "worktree")
         yield* Effect.addFinalizer(() =>
           Effect.promise(() => fs.rm(createdParent, { recursive: true, force: true })).pipe(Effect.ignore),
         )
 
-        const initial = yield* request(test.directory, `${base}/directories`)
+        const initial = yield* request(test.directory, worktrees)
         expect(initial.status).toBe(200)
-        expect(yield* json<ProjectDirectory[]>(initial)).toEqual([{ directory: test.directory }])
+        expect(yield* json<WorktreeInfo[]>(initial)).toEqual([{ directory: test.directory }])
 
-        const generated = yield* request(test.directory, `/experimental/project/${projectID}/copy/generate-name`, {
+        const generated = yield* request(test.directory, `${worktrees}/generate-name`, {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ context: undefined }),
@@ -69,24 +68,24 @@ describe("project directories and copies endpoints", () => {
         expect(generated.status).toBe(200)
         expect((yield* json<{ name: string }>(generated)).name).toBeString()
 
-        const create = yield* request(test.directory, copies, {
+        const create = yield* request(test.directory, worktrees, {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ strategy: "git", directory: createdParent, name: "copy" }),
+          body: JSON.stringify({ strategy: "git", directory: createdParent, name: "worktree" }),
         })
         expect(create.status).toBe(200)
         const created = yield* json<{ directory: string }>(create)
         expect(created.directory).toBe(createdDirectory)
 
-        const listed = yield* request(test.directory, `${base}/directories`)
-        expect(yield* json<ProjectDirectory[]>(listed)).toContainEqual({
+        const listed = yield* request(test.directory, worktrees)
+        expect(yield* json<WorktreeInfo[]>(listed)).toContainEqual({
           directory: created.directory,
           strategy: "git",
         })
 
         yield* Effect.promise(() => Bun.write(path.join(created.directory, "dirty.txt"), "dirty"))
 
-        const remove = yield* request(test.directory, copies, {
+        const remove = yield* request(test.directory, worktrees, {
           method: "DELETE",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ directory: created.directory, force: false }),
@@ -96,7 +95,7 @@ describe("project directories and copies endpoints", () => {
           data: { forceRequired: true },
         })
 
-        const forced = yield* request(test.directory, copies, {
+        const forced = yield* request(test.directory, worktrees, {
           method: "DELETE",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ directory: created.directory, force: true }),
@@ -108,16 +107,12 @@ describe("project directories and copies endpoints", () => {
           Effect.promise(() => fs.rm(externalDirectory, { recursive: true, force: true })).pipe(Effect.ignore),
         )
         yield* Effect.promise(() => $`git worktree add --detach ${externalDirectory} HEAD`.cwd(test.directory).quiet())
-        const refresh = yield* request(
-          test.directory,
-          `/experimental/project/${projectID}/copy/refresh?location%5Bdirectory%5D=${encodeURIComponent(test.directory)}`,
-          {
-            method: "POST",
-          },
-        )
+        const refresh = yield* request(test.directory, `${worktrees}/refresh`, {
+          method: "POST",
+        })
         expect(refresh.status).toBe(204)
-        const refreshed = yield* request(test.directory, `${base}/directories`)
-        expect(yield* json<ProjectDirectory[]>(refreshed)).toEqual([
+        const refreshed = yield* request(test.directory, worktrees)
+        expect(yield* json<WorktreeInfo[]>(refreshed)).toEqual([
           { directory: externalDirectory, strategy: "git" },
           { directory: test.directory },
         ])

@@ -215,49 +215,49 @@ const scenarios: Scenario[] = [
       "status",
     ),
   http.protected
-    .get("/project/{projectID}/directories", "project.directories")
+    .post("/experimental/project/{projectID}/worktree/generate-name", "experimental.worktree.generateName")
     .seeded((ctx) => ctx.project())
     .at((ctx) => ({
-      path: route("/project/{projectID}/directories", { projectID: ctx.state.id }),
-      headers: ctx.headers(),
-    }))
-    .json(200, array, "status"),
-  http.protected
-    .post("/experimental/project/{projectID}/copy/generate-name", "experimental.projectCopy.generateName")
-    .seeded((ctx) => ctx.project())
-    .at((ctx) => ({
-      path: route("/experimental/project/{projectID}/copy/generate-name", { projectID: ctx.state.id }),
+      path: route("/experimental/project/{projectID}/worktree/generate-name", { projectID: ctx.state.id }),
       headers: ctx.headers(),
       body: {},
     }))
     .json(200, (body) => {
       object(body)
-      check(typeof body.name === "string" && body.name.length > 0, "generated copy name should be non-empty")
+      check(typeof body.name === "string" && body.name.length > 0, "generated worktree name should be non-empty")
     }),
   http.protected
-    .post("/experimental/project/{projectID}/copy", "experimental.projectCopy.create")
+    .get("/experimental/project/{projectID}/worktree", "v2.worktree.list")
     .seeded((ctx) => ctx.project())
     .at((ctx) => ({
-      path: route("/experimental/project/{projectID}/copy", { projectID: ctx.state.id }),
+      path: route("/experimental/project/{projectID}/worktree", { projectID: ctx.state.id }),
+      headers: ctx.headers(),
+    }))
+    .json(200, array, "status"),
+  http.protected
+    .post("/experimental/project/{projectID}/worktree", "v2.worktree.create")
+    .seeded((ctx) => ctx.project())
+    .at((ctx) => ({
+      path: route("/experimental/project/{projectID}/worktree", { projectID: ctx.state.id }),
       headers: ctx.headers(),
       body: {},
     }))
     .status(400),
   http.protected
-    .delete("/experimental/project/{projectID}/copy", "experimental.projectCopy.remove")
+    .delete("/experimental/project/{projectID}/worktree", "v2.worktree.remove")
     .seeded((ctx) => ctx.project())
     .at((ctx) => ({
-      path: route("/experimental/project/{projectID}/copy", { projectID: ctx.state.id }),
+      path: route("/experimental/project/{projectID}/worktree", { projectID: ctx.state.id }),
       headers: ctx.headers(),
       body: {},
     }))
     .status(400),
   http.protected
-    .post("/experimental/project/{projectID}/copy/refresh", "experimental.projectCopy.refresh")
+    .post("/experimental/project/{projectID}/worktree/refresh", "v2.worktree.refresh")
     .mutating()
     .seeded((ctx) => ctx.project())
     .at((ctx) => ({
-      path: route("/experimental/project/{projectID}/copy/refresh", { projectID: ctx.state.id }),
+      path: route("/experimental/project/{projectID}/worktree/refresh", { projectID: ctx.state.id }),
       headers: ctx.headers(),
     }))
     .status(204, undefined, "status"),

@@ -94,12 +94,12 @@ export type QuestionNotFoundError = {
 export const isQuestionNotFoundError = (value: unknown): value is QuestionNotFoundError =>
   typeof value === "object" && value !== null && "_tag" in value && value["_tag"] === "QuestionNotFoundError"
 
-export type ProjectCopyError = {
-  readonly name: "ProjectCopyError"
+export type V2WorktreeError = {
+  readonly name: "WorktreeError"
   readonly data: { readonly message: string; readonly forceRequired?: boolean | undefined }
 }
-export const isProjectCopyError = (value: unknown): value is ProjectCopyError =>
-  typeof value === "object" && value !== null && "name" in value && value["name"] === "ProjectCopyError"
+export const isV2WorktreeError = (value: unknown): value is V2WorktreeError =>
+  typeof value === "object" && value !== null && "name" in value && value["name"] === "WorktreeError"
 
 export type HealthGetOutput = { readonly healthy: true }
 
@@ -2774,34 +2774,27 @@ export type ReferencesListOutput = {
   }>
 }
 
-export type ProjectCopiesCreateInput = {
+export type WorktreesListInput = { readonly projectID: { readonly projectID: string }["projectID"] }
+
+export type WorktreesListOutput = ReadonlyArray<{ readonly directory: string; readonly strategy?: string }>
+
+export type WorktreesCreateInput = {
   readonly projectID: { readonly projectID: string }["projectID"]
-  readonly location?: {
-    readonly location?: { readonly directory?: string | undefined; readonly workspace?: string | undefined } | undefined
-  }["location"]
   readonly strategy: { readonly strategy: string; readonly directory: string; readonly name?: string }["strategy"]
   readonly directory: { readonly strategy: string; readonly directory: string; readonly name?: string }["directory"]
   readonly name?: { readonly strategy: string; readonly directory: string; readonly name?: string }["name"]
 }
 
-export type ProjectCopiesCreateOutput = { readonly directory: string }
+export type WorktreesCreateOutput = { readonly directory: string }
 
-export type ProjectCopiesRemoveInput = {
+export type WorktreesRemoveInput = {
   readonly projectID: { readonly projectID: string }["projectID"]
-  readonly location?: {
-    readonly location?: { readonly directory?: string | undefined; readonly workspace?: string | undefined } | undefined
-  }["location"]
   readonly directory: { readonly directory: string; readonly force: boolean }["directory"]
   readonly force: { readonly directory: string; readonly force: boolean }["force"]
 }
 
-export type ProjectCopiesRemoveOutput = void
+export type WorktreesRemoveOutput = void
 
-export type ProjectCopiesRefreshInput = {
-  readonly projectID: { readonly projectID: string }["projectID"]
-  readonly location?: {
-    readonly location?: { readonly directory?: string | undefined; readonly workspace?: string | undefined } | undefined
-  }["location"]
-}
+export type WorktreesRefreshInput = { readonly projectID: { readonly projectID: string }["projectID"] }
 
-export type ProjectCopiesRefreshOutput = void
+export type WorktreesRefreshOutput = void

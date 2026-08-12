@@ -20,7 +20,7 @@ import { Authorization } from "./middleware/authorization"
 import { LocationGroup } from "./groups/location"
 import { IntegrationGroup } from "./groups/integration"
 import { CredentialGroup } from "./groups/credential"
-import { ProjectCopyGroup } from "./groups/project-copy"
+import { WorktreeGroup } from "./groups/worktree"
 
 // Protocol owns middleware placement, while Server injects concrete keys so Core service identities stay downstream.
 const makeApiFromGroup = <
@@ -52,7 +52,7 @@ const makeApiFromGroup = <
     .add(PtyGroup.middleware(locationMiddleware))
     .add(makeQuestionGroup(locationMiddleware, sessionLocationMiddleware))
     .add(ReferenceGroup.middleware(locationMiddleware))
-    .add(ProjectCopyGroup.middleware(locationMiddleware))
+    .add(WorktreeGroup)
     .annotateMerge(
       OpenApi.annotations({
         title: "opencode HttpApi",

@@ -106,12 +106,14 @@ import type {
   QuestionsRejectOutput,
   ReferencesListInput,
   ReferencesListOutput,
-  ProjectCopiesCreateInput,
-  ProjectCopiesCreateOutput,
-  ProjectCopiesRemoveInput,
-  ProjectCopiesRemoveOutput,
-  ProjectCopiesRefreshInput,
-  ProjectCopiesRefreshOutput,
+  WorktreesListInput,
+  WorktreesListOutput,
+  WorktreesCreateInput,
+  WorktreesCreateOutput,
+  WorktreesRemoveInput,
+  WorktreesRemoveOutput,
+  WorktreesRefreshInput,
+  WorktreesRefreshOutput,
 } from "./types"
 import { ClientError } from "./client-error"
 
@@ -947,13 +949,23 @@ export function make(options: ClientOptions) {
           requestOptions,
         ),
     },
-    projectCopies: {
-      create: (input: ProjectCopiesCreateInput, requestOptions?: RequestOptions) =>
-        request<ProjectCopiesCreateOutput>(
+    worktrees: {
+      list: (input: WorktreesListInput, requestOptions?: RequestOptions) =>
+        request<WorktreesListOutput>(
+          {
+            method: "GET",
+            path: `/experimental/project/${encodeURIComponent(input.projectID)}/worktree`,
+            successStatus: 200,
+            declaredStatuses: [401, 400],
+            empty: false,
+          },
+          requestOptions,
+        ),
+      create: (input: WorktreesCreateInput, requestOptions?: RequestOptions) =>
+        request<WorktreesCreateOutput>(
           {
             method: "POST",
-            path: `/experimental/project/${encodeURIComponent(input.projectID)}/copy`,
-            query: { location: input["location"] },
+            path: `/experimental/project/${encodeURIComponent(input.projectID)}/worktree`,
             body: { strategy: input["strategy"], directory: input["directory"], name: input["name"] },
             successStatus: 200,
             declaredStatuses: [400, 401],
@@ -961,12 +973,11 @@ export function make(options: ClientOptions) {
           },
           requestOptions,
         ),
-      remove: (input: ProjectCopiesRemoveInput, requestOptions?: RequestOptions) =>
-        request<ProjectCopiesRemoveOutput>(
+      remove: (input: WorktreesRemoveInput, requestOptions?: RequestOptions) =>
+        request<WorktreesRemoveOutput>(
           {
             method: "DELETE",
-            path: `/experimental/project/${encodeURIComponent(input.projectID)}/copy`,
-            query: { location: input["location"] },
+            path: `/experimental/project/${encodeURIComponent(input.projectID)}/worktree`,
             body: { directory: input["directory"], force: input["force"] },
             successStatus: 204,
             declaredStatuses: [400, 401],
@@ -974,12 +985,11 @@ export function make(options: ClientOptions) {
           },
           requestOptions,
         ),
-      refresh: (input: ProjectCopiesRefreshInput, requestOptions?: RequestOptions) =>
-        request<ProjectCopiesRefreshOutput>(
+      refresh: (input: WorktreesRefreshInput, requestOptions?: RequestOptions) =>
+        request<WorktreesRefreshOutput>(
           {
             method: "POST",
-            path: `/experimental/project/${encodeURIComponent(input.projectID)}/copy/refresh`,
-            query: { location: input["location"] },
+            path: `/experimental/project/${encodeURIComponent(input.projectID)}/worktree/refresh`,
             successStatus: 204,
             declaredStatuses: [400, 401],
             empty: true,

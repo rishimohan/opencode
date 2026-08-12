@@ -22,7 +22,7 @@ test("exposes every standard HTTP API group", () => {
     "ptys",
     "questions",
     "references",
-    "projectCopies",
+    "worktrees",
   ])
   expect(Object.keys(client.messages)).toEqual(["list"])
   expect(Object.keys(client.integrations)).toEqual([
@@ -36,6 +36,46 @@ test("exposes every standard HTTP API group", () => {
   ])
   expect(Object.keys(client.files)).toEqual(["list", "find"])
   expect(Object.keys(client.ptys)).toEqual(["list", "create", "get", "update", "remove"])
+  expect(Object.keys(client.worktrees)).toEqual(["list", "create", "remove", "refresh"])
+})
+
+test("worktree methods use the global project contract", async () => {
+  const requests: Array<{ url: string; init?: RequestInit }> = []
+  const client = OpenCode.make({
+    baseUrl: "http://localhost:3000",
+    fetch: async (input, init) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url
+      requests.push({ url, init })
+      if (init?.method === "POST" && !url.endsWith("/refresh")) return Response.json({ directory: "/worktrees/api" })
+      if (init?.method === "GET") return Response.json([{ directory: "/project" }])
+      return new Response(null, { status: 204 })
+    },
+  })
+
+  expect(await client.worktrees.list({ projectID: "project" })).toEqual([{ directory: "/project" }])
+  expect(
+    await client.worktrees.create({
+      projectID: "project",
+      strategy: "git",
+      directory: "/worktrees",
+      name: "api",
+    }),
+  ).toEqual({ directory: "/worktrees/api" })
+  await client.worktrees.remove({ projectID: "project", directory: "/worktrees/api", force: false })
+  await client.worktrees.refresh({ projectID: "project" })
+
+  expect(requests.map((request) => [request.init?.method, request.url])).toEqual([
+    ["GET", "http://localhost:3000/experimental/project/project/worktree"],
+    ["POST", "http://localhost:3000/experimental/project/project/worktree"],
+    ["DELETE", "http://localhost:3000/experimental/project/project/worktree"],
+    ["POST", "http://localhost:3000/experimental/project/project/worktree/refresh"],
+  ])
+  expect(JSON.parse(String(requests[1]?.init?.body))).toEqual({
+    strategy: "git",
+    directory: "/worktrees",
+    name: "api",
+  })
+  expect(JSON.parse(String(requests[2]?.init?.body))).toEqual({ directory: "/worktrees/api", force: false })
 })
 
 test("sessions.get returns the wire projection", async () => {

@@ -34,7 +34,7 @@ export const groupNames = {
   "server.pty": "ptys",
   "server.question": "questions",
   "server.reference": "references",
-  "server.projectCopy": "projectCopies",
+  "server.worktree": "worktrees",
 } as const
 
 export const endpointNames = {
