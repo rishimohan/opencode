@@ -119,7 +119,7 @@ describe("session move normalization", () => {
       type: "session.moved",
       durable: { aggregateID: "session", seq: 1, version: 1 },
       location: { directory: "/source" },
-      data: { sessionID: "session", location: { directory: "/destination" } },
+      data: { sessionID: "session", location: { directory: "/destination" }, projectID: "project_destination" },
     } satisfies Extract<OpenCodeEvent, { type: "session.moved" }>
     const event = adaptServerEvent(current)
 

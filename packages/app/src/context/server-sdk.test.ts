@@ -19,7 +19,7 @@ test("a moved event completes the matching workspace operation", () => {
       created: Date.now(),
       type: "session.moved",
       durable: { aggregateID: "current", seq: 1, version: 1 },
-      data: { sessionID: "current", location: { directory: "/workspace" } },
+      data: { sessionID: "current", location: { directory: "/workspace" }, projectID: "project_workspace" },
     } satisfies Extract<OpenCodeEvent, { type: "session.moved" }>),
   })
   expect(WorkspaceOperation.get(ServerScope.local, "current")?.status).toBe("complete")

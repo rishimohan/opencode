@@ -369,7 +369,7 @@ describe("server session", () => {
       type: "session.moved",
       durable: { aggregateID: "child", seq: 1, version: 1 },
       location: current.location,
-      data: { sessionID: "child", location: { directory: "/repo" }, subpath: "packages/app" },
+      data: { sessionID: "child", location: { directory: "/repo" }, subpath: "packages/app", projectID: "project_child" },
     } satisfies Extract<OpenCodeEvent, { type: "session.moved" }>)
 
     expect(ctx.store.get("child")).toMatchObject({ location: { directory: "/repo" }, subpath: "packages/app" })
